@@ -1,23 +1,32 @@
- require 'httparty'
+require 'httparty'
 
 class ApplicationController < ActionController::Base
   protect_from_forgery with: :exception
-  def hello
-      render html: "hello world!"
-  end
- def index
-    # Choose the URL to visit
+ 
+  def index
+    # Set the URL to visit
     @app_url = "http://www.marinetraffic.com/en/ais/index/ships/all/_:c35428865d60c383702431a7d936ca65/flag:#{params[:location]}/shipname:#{params[:vessel]}" 
 
-    begin
-      # Retrieve the webpage
-      @news = HTTParty.get(@app_url)
-    rescue StandardError 
-      # When something goes wrong create a fallback message
-      @news = OpenStruct.new(:code => nil, :message => "Domain not found")
+    # Check Param Vessel 
+    if params[:vessel].nil?
+       render html: "No Vessel Input!"
+    # Check Param Location
+    elsif params[:location].nil?
+       render html: "No Location Input!"
+    else
+      begin
+         # Retrieve the webpage
+         @response = HTTParty.get(@app_url)
+         # Check Response Status
+         if @response.code == 200
+            redirect_to(@app_url)
+         else
+            render html: "Error: #{@response.code}"
+         end
+      rescue StandardError
+         # When something goes wrong 
+         render html: "Domain Not Found!"
+      end
     end
-   
-    render "#{@news}"
-
- end
+  end
 end
